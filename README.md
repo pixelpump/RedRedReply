@@ -1,4 +1,4 @@
-# Reddit Reply AI — Chrome Extension
+# RedRedReply AI — Chrome Extension
 
 A Chrome extension that reads any Reddit post and uses OpenAI to generate a reply in the tone of your choice.
 
