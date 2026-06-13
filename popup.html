@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reddit Reply AI</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <span class="logo">🤖</span>
+        <span class="header-title">Reddit Reply AI</span>
+      </div>
+      <button class="icon-btn" id="settingsBtn" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.07 4.93a10 10 0 0 1 1.41 1.41M4.93 4.93a10 10 0 0 0-1.41 1.41M4.93 19.07a10 10 0 0 1-1.41-1.41M19.07 19.07a10 10 0 0 0 1.41-1.41M12 2v2M12 20v2M2 12H4M20 12h2"></path>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Not on Reddit message -->
+    <div id="notReddit" class="state-msg hidden">
+      <div class="state-icon">🦊</div>
+      <p class="state-title">Not on Reddit</p>
+      <p class="state-sub">Navigate to a Reddit post to generate a reply.</p>
+    </div>
+
+    <!-- Not on post message -->
+    <div id="notPost" class="state-msg hidden">
+      <div class="state-icon">📋</div>
+      <p class="state-title">Open a Post</p>
+      <p class="state-sub">Click into a specific Reddit post, then come back.</p>
+    </div>
+
+    <!-- No API key message -->
+    <div id="noApiKey" class="state-msg hidden">
+      <div class="state-icon">🔑</div>
+      <p class="state-title">API Key Required</p>
+      <p class="state-sub">Add your AI provider API key in Settings to get started.</p>
+      <button class="btn-primary" id="goToSettingsBtn">Open Settings</button>
+    </div>
+
+    <!-- Main content -->
+    <div id="mainContent" class="hidden">
+      <!-- Post preview -->
+      <section class="post-preview">
+        <div class="post-preview-header">
+          <span class="badge" id="subredditBadge">r/...</span>
+        </div>
+        <p class="post-title" id="postTitle">Loading...</p>
+        <p class="post-body-preview" id="postBodyPreview"></p>
+      </section>
+
+      <!-- Reply target toggle -->
+      <section class="section">
+        <label class="section-label">Replying To</label>
+        <div class="segment-control" id="replyModeControl">
+          <button class="segment-btn active" data-mode="post">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            Original Post
+          </button>
+          <button class="segment-btn" data-mode="comment">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            A Comment
+          </button>
+        </div>
+      </section>
+
+      <!-- Target comment (visible in comment mode) -->
+      <section class="section hidden" id="targetCommentSection">
+        <label class="section-label" for="targetComment">Comment to Reply To</label>
+        <textarea
+          id="targetComment"
+          class="textarea"
+          rows="3"
+          placeholder="Paste the comment you want to reply to…"
+        ></textarea>
+      </section>
+
+      <!-- Tone selection -->
+      <section class="section">
+        <label class="section-label">Select Tone</label>
+        <div class="tone-grid" id="toneGrid">
+          <button class="tone-btn" data-tone="positive">
+            <span class="tone-emoji">👍</span>
+            <span class="tone-name">Positive</span>
+          </button>
+          <button class="tone-btn" data-tone="negative">
+            <span class="tone-emoji">👎</span>
+            <span class="tone-name">Critical</span>
+          </button>
+          <button class="tone-btn" data-tone="funny">
+            <span class="tone-emoji">😂</span>
+            <span class="tone-name">Funny</span>
+          </button>
+          <button class="tone-btn" data-tone="sarcastic">
+            <span class="tone-emoji">😏</span>
+            <span class="tone-name">Sarcastic</span>
+          </button>
+          <button class="tone-btn" data-tone="informative">
+            <span class="tone-emoji">🤓</span>
+            <span class="tone-name">Informative</span>
+          </button>
+          <button class="tone-btn" data-tone="empathetic">
+            <span class="tone-emoji">💙</span>
+            <span class="tone-name">Empathetic</span>
+          </button>
+          <button class="tone-btn" data-tone="devils_advocate">
+            <span class="tone-emoji">😈</span>
+            <span class="tone-name">Devil's Advocate</span>
+          </button>
+          <button class="tone-btn" data-tone="spicy">
+            <span class="tone-emoji">🔥</span>
+            <span class="tone-name">Hot Take</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Extra context -->
+      <section class="section">
+        <label class="section-label" for="extraContext">Add Context <span class="optional">(optional)</span></label>
+        <textarea
+          id="extraContext"
+          class="textarea"
+          rows="2"
+          placeholder="e.g. I disagree with the OP because..."
+        ></textarea>
+      </section>
+
+      <!-- Generate button -->
+      <button class="btn-generate" id="generateBtn" disabled>
+        <span id="generateBtnIcon">✨</span>
+        <span id="generateBtnText">Select a tone to generate</span>
+      </button>
+
+      <!-- Result -->
+      <section class="result-section hidden" id="resultSection">
+        <div class="result-header">
+          <label class="section-label">Generated Reply</label>
+          <div class="result-actions">
+            <button class="action-btn" id="copyBtn" title="Copy to clipboard">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy</span>
+            </button>
+            <button class="action-btn" id="regenBtn" title="Regenerate">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+              <span>Retry</span>
+            </button>
+          </div>
+        </div>
+        <div class="result-box" id="resultBox"></div>
+        <p class="copy-toast hidden" id="copyToast">Copied to clipboard!</p>
+      </section>
+
+      <!-- Error -->
+      <div class="error-box hidden" id="errorBox"></div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

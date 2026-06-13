@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reddit Reply AI — Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="page-header">
+        <span class="logo">🤖</span>
+        <div>
+          <h1 class="page-title">Reddit Reply AI</h1>
+          <p class="page-sub">Settings</p>
+        </div>
+      </header>
+
+      <form id="settingsForm">
+        <!-- Provider -->
+        <div class="field">
+          <label class="field-label" for="provider">AI Provider</label>
+          <p class="field-desc">Choose which AI service to use for generating replies.</p>
+          <select id="provider" class="input select">
+            <option value="openai">OpenAI</option>
+            <option value="deepseek">DeepSeek</option>
+          </select>
+        </div>
+
+        <!-- OpenAI API Key -->
+        <div class="field" id="openaiKeyField">
+          <label class="field-label" for="apiKey">OpenAI API Key</label>
+          <p class="field-desc">
+            Your key is stored locally and never sent anywhere except directly to OpenAI.
+            Get one at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com</a>.
+          </p>
+          <div class="input-wrap">
+            <input
+              type="password"
+              id="apiKey"
+              class="input"
+              placeholder="sk-..."
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button type="button" class="toggle-visibility" id="toggleKey" title="Show/hide key">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- DeepSeek API Key -->
+        <div class="field hidden" id="deepseekKeyField">
+          <label class="field-label" for="deepseekApiKey">DeepSeek API Key</label>
+          <p class="field-desc">
+            Your key is stored locally and never sent anywhere except directly to DeepSeek.
+            Get one at <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">platform.deepseek.com</a>.
+          </p>
+          <div class="input-wrap">
+            <input
+              type="password"
+              id="deepseekApiKey"
+              class="input"
+              placeholder="sk-..."
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button type="button" class="toggle-visibility" id="toggleDeepseekKey" title="Show/hide key">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Model -->
+        <div class="field">
+          <label class="field-label" for="model">Model</label>
+          <p class="field-desc" id="modelDesc">
+            <code>gpt-4o-mini</code> is fast and cheap. Use <code>gpt-4o</code> for higher quality.
+          </p>
+          <select id="model" class="input select">
+            <option value="gpt-4o-mini">gpt-4o-mini (recommended)</option>
+            <option value="gpt-4o">gpt-4o</option>
+            <option value="gpt-4-turbo">gpt-4-turbo</option>
+            <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+          </select>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn-save" id="saveBtn">Save Settings</button>
+          <p class="save-status hidden" id="saveStatus">✅ Saved!</p>
+        </div>
+      </form>
+
+      <div class="divider"></div>
+
+      <section class="info-section">
+        <h2 class="info-title">How it works</h2>
+        <ol class="info-list">
+          <li>Navigate to any Reddit post (e.g. <code>reddit.com/r/something/comments/…</code>)</li>
+          <li>Click the Reddit Reply AI extension icon in your toolbar</li>
+          <li>Choose a tone for your reply</li>
+          <li>Optionally add context or instructions</li>
+          <li>Click <strong>Generate</strong> and copy your reply</li>
+        </ol>
+      </section>
+    </div>
+
+    <script src="options.js"></script>
+  </body>
+</html>
