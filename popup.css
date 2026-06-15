@@ -56,6 +56,14 @@ body {
   line-height: 1;
 }
 
+.logo-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 .header-title {
   font-size: 14px;
   font-weight: 600;
