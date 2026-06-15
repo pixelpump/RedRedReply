@@ -6,6 +6,8 @@
   "permissions": ["activeTab", "storage", "scripting", "contextMenus", "windows"],
   "host_permissions": [
     "https://*.reddit.com/*",
+    "https://twitter.com/*",
+    "https://x.com/*",
     "https://api.openai.com/*",
     "https://api.deepseek.com/*",
     "https://openrouter.ai/*"
@@ -20,7 +22,11 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://*.reddit.com/*"],
+      "matches": [
+        "https://*.reddit.com/*",
+        "https://twitter.com/*",
+        "https://x.com/*"
+      ],
       "js": ["content.js"],
       "run_at": "document_idle"
     }

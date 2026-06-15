@@ -14,7 +14,11 @@ chrome.runtime.onInstalled.addListener(() => {
       title: 'Generate AI Reply',
       // Show when text is selected OR when right-clicking inside an editable field
       contexts: ['selection', 'editable'],
-      documentUrlPatterns: ['https://*.reddit.com/r/*/comments/*'],
+      documentUrlPatterns: [
+      'https://*.reddit.com/r/*/comments/*',
+      'https://twitter.com/*/status/*',
+      'https://x.com/*/status/*',
+    ],
     });
   });
 });
@@ -117,61 +121,72 @@ const PROVIDER_CONFIG = {
 
 async function generateReply({ postData, tone, extraContext, model, apiKey, provider, replyMode, targetComment }) {
   const toneConfig = TONE_PROMPTS[tone];
-  if (!toneConfig) {
-    throw new Error(`Unknown tone: ${tone}`);
-  }
+  if (!toneConfig) throw new Error(`Unknown tone: ${tone}`);
 
-  const postContext = [
-    `Subreddit: r/${postData.subreddit}`,
-    `Title: ${postData.title}`,
-    postData.body ? `Post body:\n${postData.body}` : null,
-    postData.topComments?.length
-      ? `Top comments for context:\n${postData.topComments.map((c, i) => `${i + 1}. ${c}`).join('\n')}`
-      : null,
-  ]
-    .filter(Boolean)
-    .join('\n\n');
+  const platform = postData?.platform || 'reddit';
+  const isTwitter = platform === 'twitter';
 
-  let userMessage;
+  // Build post / tweet context block
+  const postContext = isTwitter
+    ? [
+        postData.author ? `Author: ${postData.author}` : null,
+        `Tweet:\n${postData.body || postData.title}`,
+        postData.topComments?.length
+          ? `Top replies for context:\n${postData.topComments.map((c, i) => `${i + 1}. ${c}`).join('\n')}`
+          : null,
+      ].filter(Boolean).join('\n\n')
+    : [
+        `Subreddit: r/${postData.subreddit}`,
+        `Title: ${postData.title}`,
+        postData.body ? `Post body:\n${postData.body}` : null,
+        postData.topComments?.length
+          ? `Top comments for context:\n${postData.topComments.map((c, i) => `${i + 1}. ${c}`).join('\n')}`
+          : null,
+      ].filter(Boolean).join('\n\n');
+
+  // Platform-specific voice rules
+  const voiceRules = isTwitter
+    ? `- Write in a natural Twitter/X voice — punchy, direct, no corporate speak
+- Keep it short: 1–3 sentences is ideal; 280 characters if possible, up to a short paragraph at most
+- No headers, no bullet points — just plain conversational text
+- Do NOT say you are an AI or mention the tone you are using
+- Just write the reply as if you are typing it into the Twitter reply box`
+    : `- Write in a natural Reddit voice — conversational, direct, no corporate speak
+- Keep it concise: 1–3 short paragraphs max
+- Do NOT say you are an AI or mention the tone you are using
+- Do NOT use headers, bullet points, or markdown formatting beyond what Reddit supports
+- Just write the reply directly, as if you are typing it into the comment box`;
+
   let systemPrompt;
+  let userMessage;
 
   if (replyMode === 'comment' && targetComment) {
-    systemPrompt = `You are a Reddit user replying to a specific comment in a thread. ${toneConfig.instruction}
+    const targetLabel = isTwitter ? 'tweet' : 'comment';
+    const contextLabel = isTwitter ? 'tweet' : 'post';
+    systemPrompt = `You are ${isTwitter ? 'a Twitter/X user' : 'a Reddit user'} replying to a specific ${targetLabel} in a thread. ${toneConfig.instruction}
 
 Rules:
-- Write in a natural Reddit voice — conversational, direct, no corporate speak
-- Keep it concise: 1–3 short paragraphs max
-- Address the specific comment directly — your reply should make sense as a response to it
-- Use the original post as background context, not as your primary target
-- Do NOT say you are an AI or mention the tone you are using
-- Do NOT use headers, bullet points, or markdown formatting beyond what Reddit supports
-- Just write the reply directly, as if you are typing it into the comment box`;
+${voiceRules}
+- Address the specific ${targetLabel} directly — your reply should make sense as a response to it
+- Use the original ${contextLabel} as background context, not as your primary target`;
 
     userMessage = [
-      `Here is the original Reddit post for context:\n\n${postContext}`,
-      `Here is the specific comment I want to reply to:\n\n${targetComment}`,
+      `Here is the original ${isTwitter ? 'tweet' : 'Reddit post'} for context:\n\n${postContext}`,
+      `Here is the specific ${targetLabel} I want to reply to:\n\n${targetComment}`,
       extraContext ? `Additional context from me: ${extraContext}` : null,
-      'Write my reply to that comment now.',
-    ]
-      .filter(Boolean)
-      .join('\n\n');
+      `Write my reply to that ${targetLabel} now.`,
+    ].filter(Boolean).join('\n\n');
   } else {
-    systemPrompt = `You are a Reddit user crafting a reply to a post. ${toneConfig.instruction}
+    systemPrompt = `You are ${isTwitter ? 'a Twitter/X user crafting a reply to a tweet' : 'a Reddit user crafting a reply to a post'}. ${toneConfig.instruction}
 
 Rules:
-- Write in a natural Reddit voice — conversational, direct, no corporate speak
-- Keep it concise: 1–3 short paragraphs max
-- Do NOT say you are an AI or mention the tone you are using
-- Do NOT use headers, bullet points, or markdown formatting beyond what Reddit supports
-- Just write the reply directly, as if you are typing it into the comment box`;
+${voiceRules}`;
 
     userMessage = [
-      `Here is the Reddit post I want to reply to:\n\n${postContext}`,
+      `Here is the ${isTwitter ? 'tweet' : 'Reddit post'} I want to reply to:\n\n${postContext}`,
       extraContext ? `Additional context from me: ${extraContext}` : null,
       'Write my reply now.',
-    ]
-      .filter(Boolean)
-      .join('\n\n');
+    ].filter(Boolean).join('\n\n');
   }
 
   const cfg = PROVIDER_CONFIG[provider] || PROVIDER_CONFIG.openai;

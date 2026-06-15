@@ -10,6 +10,14 @@ document.addEventListener('contextmenu', (e) => {
   lastRightClickedEl = e.target;
 });
 
+// ── Platform detection ───────────────────────────────────────────────────────
+
+function getPlatform() {
+  const host = window.location.hostname;
+  if (host.includes('twitter.com') || host.includes('x.com')) return 'twitter';
+  return 'reddit';
+}
+
 // ── Post extraction ──────────────────────────────────────────────────────────
 
 function extractNewRedditPost() {
@@ -60,7 +68,45 @@ function extractOldRedditPost() {
   return { title, body, subreddit, topComments, isOldReddit: true };
 }
 
+function extractTwitterPost() {
+  if (!/\/status\/\d+/.test(window.location.pathname)) return null;
+
+  // The primary (top) tweet on a status page is the first article
+  const articles = document.querySelectorAll('article[data-testid="tweet"]');
+  const primary = articles[0];
+  if (!primary) return null;
+
+  const textEl = primary.querySelector('[data-testid="tweetText"]');
+  const body = textEl ? textEl.innerText.trim() : '';
+  if (!body) return null;
+
+  // Author — display name + @handle
+  const userNameEl = primary.querySelector('[data-testid="User-Name"]');
+  const displayName = userNameEl?.querySelector('span')?.innerText?.trim() || '';
+  const handleLink = userNameEl?.querySelector('a[href]');
+  const handle = handleLink ? '@' + handleLink.getAttribute('href').replace(/^\//, '') : '';
+  const author = [displayName, handle].filter(Boolean).join(' ');
+
+  // Top replies for context (skip the first article — that's the primary tweet)
+  const topComments = Array.from(articles)
+    .slice(1, 4)
+    .map((a) => a.querySelector('[data-testid="tweetText"]')?.innerText?.trim())
+    .filter(Boolean);
+
+  return {
+    platform: 'twitter',
+    title: body.length > 120 ? body.slice(0, 120) + '…' : body,
+    body,
+    author,
+    subreddit: null,
+    topComments,
+    url: window.location.href,
+  };
+}
+
 function extractPostData() {
+  if (getPlatform() === 'twitter') return extractTwitterPost();
+
   const isOldReddit = window.location.hostname === 'old.reddit.com';
   const isPostPage = /\/r\/[^/]+\/comments\//.test(window.location.pathname);
 
@@ -69,7 +115,7 @@ function extractPostData() {
   const data = isOldReddit ? extractOldRedditPost() : extractNewRedditPost();
   if (!data.title) return null;
 
-  return { ...data, url: window.location.href };
+  return { ...data, platform: 'reddit', url: window.location.href };
 }
 
 // ── Parent-comment extraction ────────────────────────────────────────────────
@@ -85,6 +131,30 @@ function extractPostData() {
  */
 function findParentCommentText(el) {
   if (!el) return null;
+
+  // ── Twitter / X ──────────────────────────────────────────────────────────
+  if (getPlatform() === 'twitter') {
+    // Reply compose appears in a modal dialog or inline; the tweet being
+    // replied to is the nearest article[data-testid="tweet"] sibling/ancestor.
+
+    // 1. Modal reply — look for a tweet inside the same dialog
+    const dialog = el.closest('[role="dialog"]') || el.closest('[aria-modal="true"]');
+    if (dialog) {
+      const tweetText = dialog.querySelector('[data-testid="tweetText"]');
+      if (tweetText) return tweetText.innerText.trim().slice(0, 1500) || null;
+    }
+
+    // 2. Inline reply on a tweet detail page — the first article is the parent
+    const firstArticle = document.querySelector('article[data-testid="tweet"]');
+    if (firstArticle) {
+      const tweetText = firstArticle.querySelector('[data-testid="tweetText"]');
+      if (tweetText) return tweetText.innerText.trim().slice(0, 1500) || null;
+    }
+
+    return null;
+  }
+
+  // ── Reddit ────────────────────────────────────────────────────────────────
 
   // 1. Shreddit (web-component Reddit)
   const shredditComment = el.closest('shreddit-comment');

@@ -109,12 +109,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     tab = activeTab;
   }
 
-  if (!tab?.url || !tab.url.includes('reddit.com')) {
+  const isReddit  = tab?.url?.includes('reddit.com');
+  const isTwitter = tab?.url?.includes('twitter.com') || tab?.url?.includes('x.com');
+
+  if (!isReddit && !isTwitter) {
     showState('notReddit');
     return;
   }
 
-  if (!/\/r\/[^/]+\/comments\//.test(tab.url)) {
+  const onPost = isReddit
+    ? /\/r\/[^/]+\/comments\//.test(tab.url)
+    : /\/status\/\d+/.test(tab.url);
+
+  if (!onPost) {
     showState('notPost');
     return;
   }
@@ -169,13 +176,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function renderPostPreview(data) {
-  els.subredditBadge.textContent = `r/${data.subreddit || '?'}`;
-  els.postTitle.textContent = data.title || 'Untitled post';
-  if (data.body) {
-    els.postBodyPreview.textContent = data.body;
+  if (data.platform === 'twitter') {
+    els.subredditBadge.textContent = data.author || 'Tweet';
+    els.subredditBadge.style.color = '#1d9bf0';
+    els.subredditBadge.style.background = 'rgba(29,155,240,0.12)';
+  } else {
+    els.subredditBadge.textContent = `r/${data.subreddit || '?'}`;
+    els.subredditBadge.style.color = '';
+    els.subredditBadge.style.background = '';
+  }
+
+  els.postTitle.textContent = data.title || (data.platform === 'twitter' ? 'Tweet' : 'Untitled post');
+
+  const preview = data.platform === 'twitter' ? '' : (data.body || '');
+  if (preview) {
+    els.postBodyPreview.textContent = preview;
     show(els.postBodyPreview);
   } else {
     hide(els.postBodyPreview);
+  }
+
+  // Update segment control labels to match the platform
+  const postBtn = document.querySelector('.segment-btn[data-mode="post"]');
+  const commentBtn = document.querySelector('.segment-btn[data-mode="comment"]');
+  if (data.platform === 'twitter') {
+    if (postBtn) postBtn.querySelector
+      ? (postBtn.lastChild.textContent = ' Tweet') : null;
+    if (commentBtn) commentBtn.lastChild.textContent = ' A Reply';
   }
 }
 
