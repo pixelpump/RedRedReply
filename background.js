@@ -18,8 +18,10 @@ chrome.runtime.onInstalled.addListener(() => {
       contexts: ['page', 'selection', 'editable'],
       documentUrlPatterns: [
         'https://*.reddit.com/r/*/comments/*',
-        'https://twitter.com/*/status/*',
-        'https://x.com/*/status/*',
+        // Twitter reply modals open on any page (feed, home, etc.) without
+        // changing the URL, so we must match all Twitter/X pages.
+        'https://twitter.com/*',
+        'https://x.com/*',
       ],
     });
   });

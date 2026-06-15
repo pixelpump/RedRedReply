@@ -112,6 +112,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   const isReddit  = tab?.url?.includes('reddit.com');
   const isTwitter = tab?.url?.includes('twitter.com') || tab?.url?.includes('x.com');
 
+  // If we already have post data from a right-click, skip URL checks — the
+  // reply modal can be open on any Twitter page (feed, home, etc.)
+  if (pendingContext?.postData) {
+    currentPostData = pendingContext.postData;
+    renderPostPreview(currentPostData);
+    showState('main');
+    if (pendingContext.targetComment) {
+      replyMode = 'comment';
+      document.querySelectorAll('.segment-btn').forEach((b) => b.classList.remove('active'));
+      document.querySelector('.segment-btn[data-mode="comment"]').classList.add('active');
+      show(els.targetCommentSection);
+      els.targetComment.value = pendingContext.targetComment;
+      els.toneGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    return;
+  }
+
   if (!isReddit && !isTwitter) {
     showState('notReddit');
     return;
