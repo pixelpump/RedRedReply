@@ -112,21 +112,37 @@ document.addEventListener('DOMContentLoaded', async () => {
   const isReddit  = tab?.url?.includes('reddit.com');
   const isTwitter = tab?.url?.includes('twitter.com') || tab?.url?.includes('x.com');
 
-  // If we already have post data from a right-click, skip URL checks — the
-  // reply modal can be open on any Twitter page (feed, home, etc.)
-  if (pendingContext?.postData) {
-    currentPostData = pendingContext.postData;
-    renderPostPreview(currentPostData);
-    showState('main');
-    if (pendingContext.targetComment) {
-      replyMode = 'comment';
-      document.querySelectorAll('.segment-btn').forEach((b) => b.classList.remove('active'));
-      document.querySelector('.segment-btn[data-mode="comment"]').classList.add('active');
-      show(els.targetCommentSection);
-      els.targetComment.value = pendingContext.targetComment;
-      els.toneGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Came from a right-click — use stored postData or retry a live fetch from
+  // the originating tab (covers cases where extraction failed at click time).
+  if (pendingContext?.tabId) {
+    let postData = pendingContext.postData || null;
+
+    if (!postData) {
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: pendingContext.tabId },
+          files: ['content.js'],
+        }).catch(() => {});
+        const resp = await chrome.tabs.sendMessage(pendingContext.tabId, { action: 'getPostData' });
+        if (resp?.success && resp.data) postData = resp.data;
+      } catch (_) {}
     }
-    return;
+
+    if (postData) {
+      currentPostData = postData;
+      renderPostPreview(currentPostData);
+      showState('main');
+      if (pendingContext.targetComment) {
+        replyMode = 'comment';
+        document.querySelectorAll('.segment-btn').forEach((b) => b.classList.remove('active'));
+        document.querySelector('.segment-btn[data-mode="comment"]').classList.add('active');
+        show(els.targetCommentSection);
+        els.targetComment.value = pendingContext.targetComment;
+        els.toneGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      return;
+    }
+    // Could not get post data even after retry — fall through to normal flow
   }
 
   if (!isReddit && !isTwitter) {

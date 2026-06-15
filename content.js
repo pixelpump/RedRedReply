@@ -82,28 +82,67 @@ function tweetDataFromArticle(article) {
   return { body, author };
 }
 
+function buildTwitterResult(d, topComments = []) {
+  return {
+    platform: 'twitter',
+    title: d.body.length > 120 ? d.body.slice(0, 120) + '…' : d.body,
+    body: d.body,
+    author: d.author,
+    subreddit: null,
+    topComments,
+    url: window.location.href,
+  };
+}
+
 function extractTwitterPost() {
-  // 1. Reply modal open (works from feed, timeline, profile — any URL)
-  const dialog = document.querySelector('[role="dialog"]');
+  // 1. Any modal/sheet/dialog variant Twitter uses
+  const dialog =
+    document.querySelector('[data-testid="sheetDialog"]') ||
+    document.querySelector('[role="dialog"]') ||
+    document.querySelector('[aria-modal="true"]');
+
   if (dialog) {
     const article = dialog.querySelector('article[data-testid="tweet"]');
     if (article) {
       const d = tweetDataFromArticle(article);
-      if (d) {
-        return {
-          platform: 'twitter',
-          title: d.body.length > 120 ? d.body.slice(0, 120) + '…' : d.body,
-          body: d.body,
-          author: d.author,
-          subreddit: null,
-          topComments: [],
-          url: window.location.href,
-        };
-      }
+      if (d) return buildTwitterResult(d);
+    }
+    // Dialog found but tweet article not inside — try raw tweetText
+    const rawText = dialog.querySelector('[data-testid="tweetText"]');
+    if (rawText) {
+      const body = rawText.innerText.trim();
+      if (body) return buildTwitterResult({ body, author: '' });
     }
   }
 
-  // 2. Status page (no modal) — first article is the primary tweet
+  // 2. Inline compose area (reply expanded in the feed, no modal wrapper).
+  // Find any visible reply textarea and walk up/around to find the tweet text.
+  const composeArea =
+    document.querySelector('[data-testid="tweetTextarea_0"]') ||
+    document.querySelector('[role="textbox"][aria-label]');
+
+  if (composeArea) {
+    // Walk up the DOM; the tweet being replied to is usually in a sibling/ancestor article
+    let node = composeArea.parentElement;
+    while (node && node !== document.body) {
+      // Look for a sibling article before the compose area
+      const prevArticle = node.querySelector('article[data-testid="tweet"]');
+      if (prevArticle) {
+        const d = tweetDataFromArticle(prevArticle);
+        if (d) return buildTwitterResult(d);
+      }
+      node = node.parentElement;
+    }
+
+    // Broader fallback: just grab the first tweetText visible on the page
+    const anyText = document.querySelector('[data-testid="tweetText"]');
+    if (anyText) {
+      const body = anyText.innerText.trim();
+      if (body) return buildTwitterResult({ body, author: '' });
+    }
+  }
+
+  // 3. Status page (no modal, no compose area open) — first article is the tweet
   if (!/\/status\/\d+/.test(window.location.pathname)) return null;
 
   const articles = document.querySelectorAll('article[data-testid="tweet"]');
@@ -118,15 +157,7 @@ function extractTwitterPost() {
     .map((a) => a.querySelector('[data-testid="tweetText"]')?.innerText?.trim())
     .filter(Boolean);
 
-  return {
-    platform: 'twitter',
-    title: d.body.length > 120 ? d.body.slice(0, 120) + '…' : d.body,
-    body: d.body,
-    author: d.author,
-    subreddit: null,
-    topComments,
-    url: window.location.href,
-  };
+  return buildTwitterResult(d, topComments);
 }
 
 function extractPostData() {
