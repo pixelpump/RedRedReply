@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Reddit Reply AI",
+  "name": "RedDeadWit",
   "version": "1.0.0",
-  "description": "Generate AI-powered replies to Reddit posts with custom tone control",
+  "description": "AI-powered comebacks and replies for Reddit, with full tone control",
   "permissions": ["activeTab", "storage", "scripting", "contextMenus", "windows"],
   "host_permissions": [
     "https://*.reddit.com/*",

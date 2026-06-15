@@ -1,6 +1,6 @@
-# RedRedReply AI — Chrome Extension
+# RedDeadWit — Chrome Extension
 
-A Chrome extension that reads any Reddit post or comment thread and uses AI to generate a contextual reply in the tone of your choice. Supports both **OpenAI** and **DeepSeek** as AI providers.
+AI-powered comebacks and replies for Reddit, with full tone control. Reads any Reddit post or comment thread and generates a contextual reply in the tone of your choice. Supports both **OpenAI** and **DeepSeek** as AI providers.
 
 ## Features
 
