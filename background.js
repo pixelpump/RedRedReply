@@ -12,13 +12,15 @@ chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
       id: 'generateReply',
       title: 'Generate AI Reply',
-      // Show when text is selected OR when right-clicking inside an editable field
-      contexts: ['selection', 'editable'],
+      // 'page' ensures it shows on any right-click on a matching URL —
+      // needed for Twitter/X where the compose area is a contenteditable
+      // div that Chrome doesn't always classify as 'editable'.
+      contexts: ['page', 'selection', 'editable'],
       documentUrlPatterns: [
-      'https://*.reddit.com/r/*/comments/*',
-      'https://twitter.com/*/status/*',
-      'https://x.com/*/status/*',
-    ],
+        'https://*.reddit.com/r/*/comments/*',
+        'https://twitter.com/*/status/*',
+        'https://x.com/*/status/*',
+      ],
     });
   });
 });

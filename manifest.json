@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "RedDeadWit",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "AI-powered comebacks and replies for Reddit, with full tone control",
   "permissions": ["activeTab", "storage", "scripting", "contextMenus", "windows"],
   "host_permissions": [
