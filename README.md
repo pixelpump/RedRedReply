@@ -24,6 +24,18 @@ AI-powered comebacks and replies for Reddit, with full tone control. Reads any R
 | 😈 Devil's Advocate | Challenges the prevailing view |
 | 🔥 Hot Take | Bold, controversial, provocative |
 
+## Screenshots
+
+### Popup UI
+![RedDeadWit popup showing the extension open on a Reddit post, with the Replying To toggle, tone grid, Add Context field, and Generate button](screenshots/popup-ui.png)
+
+The popup opens over any Reddit post and auto-detects the subreddit and title. Choose whether you're replying to the **Original Post** or **A Comment**, pick a tone from the grid, optionally add context, then click a tone to generate instantly. The reply is automatically copied to your clipboard the moment it appears.
+
+### Right-click context menu
+![Chrome context menu inside a Reddit reply box showing the Generate AI Reply option alongside standard browser items](screenshots/context-menu.png)
+
+Right-click anywhere inside a Reddit reply compose box (after hitting Reddit's own Reply button) and choose **Generate AI Reply**. The extension reads the parent comment and post for context, opens the popup pre-loaded, and generates a reply — no copy-pasting required.
+
 ## Setup
 
 ### 1. Load the extension in Chrome
