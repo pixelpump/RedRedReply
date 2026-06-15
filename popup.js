@@ -78,12 +78,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (pendingContext) await chrome.storage.local.remove('pendingContext');
 
   // Check that the active provider's API key is set
-  const { apiKey, deepseekApiKey, provider } = await chrome.storage.sync.get([
+  const { apiKey, deepseekApiKey, openrouterApiKey, provider } = await chrome.storage.sync.get([
     'apiKey',
     'deepseekApiKey',
+    'openrouterApiKey',
     'provider',
   ]);
-  const activeKey = (provider || 'openai') === 'deepseek' ? deepseekApiKey : apiKey;
+  const keyMap = { openai: apiKey, deepseek: deepseekApiKey, openrouter: openrouterApiKey };
+  const activeKey = keyMap[provider || 'openai'];
   if (!activeKey) {
     showState('noApiKey');
     return;

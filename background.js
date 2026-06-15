@@ -105,6 +105,14 @@ const PROVIDER_CONFIG = {
     endpoint: 'https://api.deepseek.com/v1/chat/completions',
     defaultModel: 'deepseek-chat',
   },
+  openrouter: {
+    endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+    defaultModel: 'openai/gpt-4o-mini',
+    extraHeaders: {
+      'HTTP-Referer': 'https://github.com/pixelpump/RedRedReply',
+      'X-Title': 'RedDeadWit',
+    },
+  },
 };
 
 async function generateReply({ postData, tone, extraContext, model, apiKey, provider, replyMode, targetComment }) {
@@ -173,6 +181,7 @@ Rules:
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
+      ...( cfg.extraHeaders || {} ),
     },
     body: JSON.stringify({
       model: model || cfg.defaultModel,
@@ -200,10 +209,11 @@ Rules:
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.action === 'generateReply') {
-    chrome.storage.sync.get(['apiKey', 'deepseekApiKey', 'model', 'provider'], async (stored) => {
+    chrome.storage.sync.get(['apiKey', 'deepseekApiKey', 'openrouterApiKey', 'model', 'provider'], async (stored) => {
       try {
         const provider = stored.provider || 'openai';
-        const apiKey = provider === 'deepseek' ? stored.deepseekApiKey : stored.apiKey;
+        const keyMap = { openai: stored.apiKey, deepseek: stored.deepseekApiKey, openrouter: stored.openrouterApiKey };
+        const apiKey = keyMap[provider];
 
         if (!apiKey) {
           sendResponse({ success: false, error: 'NO_API_KEY' });

@@ -24,6 +24,7 @@
           <select id="provider" class="input select">
             <option value="openai">OpenAI</option>
             <option value="deepseek">DeepSeek</option>
+            <option value="openrouter">OpenRouter</option>
           </select>
         </div>
 
@@ -69,6 +70,31 @@
               spellcheck="false"
             />
             <button type="button" class="toggle-visibility" id="toggleDeepseekKey" title="Show/hide key">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- OpenRouter API Key -->
+        <div class="field hidden" id="openrouterKeyField">
+          <label class="field-label" for="openrouterApiKey">OpenRouter API Key</label>
+          <p class="field-desc">
+            Access 300+ models (GPT-4o, Claude, Gemini, Llama &amp; more) through one key.
+            Get one at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a>.
+          </p>
+          <div class="input-wrap">
+            <input
+              type="password"
+              id="openrouterApiKey"
+              class="input"
+              placeholder="sk-or-..."
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button type="button" class="toggle-visibility" id="toggleOpenrouterKey" title="Show/hide key">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
