@@ -138,7 +138,12 @@
 
       <!-- Result -->
       <section class="result-section hidden" id="resultSection">
-        <div class="result-header">
+        <!-- Typing indicator (shown while generating) -->
+        <div class="typing-indicator hidden" id="typingIndicator">
+          <span></span><span></span><span></span>
+        </div>
+
+        <div class="result-header" id="resultHeader">
           <label class="section-label">Generated Reply</label>
           <div class="result-actions">
             <button class="action-btn" id="copyBtn" title="Copy to clipboard">

@@ -25,6 +25,8 @@ const els = {
   generateBtnIcon: document.getElementById('generateBtnIcon'),
   generateBtnText: document.getElementById('generateBtnText'),
   resultSection: document.getElementById('resultSection'),
+  typingIndicator: document.getElementById('typingIndicator'),
+  resultHeader: document.getElementById('resultHeader'),
   resultBox: document.getElementById('resultBox'),
   copyBtn: document.getElementById('copyBtn'),
   regenBtn: document.getElementById('regenBtn'),
@@ -180,13 +182,16 @@ els.toneGrid.addEventListener('click', (e) => {
   const btn = e.target.closest('.tone-btn');
   if (!btn) return;
 
-  // Deselect all, select clicked
   document.querySelectorAll('.tone-btn').forEach((b) => b.classList.remove('selected'));
   btn.classList.add('selected');
   selectedTone = btn.dataset.tone;
 
   updateGenerateBtnState();
   hide(els.errorBox);
+
+  // Auto-generate immediately — unless in comment mode with no comment text yet
+  const commentMissing = replyMode === 'comment' && !els.targetComment.value.trim();
+  if (!commentMissing) generateReply();
 });
 
 function updateGenerateBtnState() {
@@ -196,14 +201,18 @@ function updateGenerateBtnState() {
   if (!selectedTone) {
     els.generateBtnText.textContent = 'Select a tone to generate';
   } else {
+    const hasResult = !els.resultSection.classList.contains('hidden');
     const toneBtn = document.querySelector(`.tone-btn[data-tone="${selectedTone}"]`);
     const toneName = toneBtn ? toneBtn.querySelector('.tone-name').textContent : '';
     const target = replyMode === 'comment' ? 'Comment Reply' : 'Reply';
-    els.generateBtnText.textContent = `Generate ${toneName} ${target}`;
+    els.generateBtnText.textContent = hasResult
+      ? `Regenerate ${toneName} ${target}`
+      : `Generate ${toneName} ${target}`;
   }
 }
 
-// Re-validate when comment textarea changes
+// Re-validate when comment textarea changes; no auto-generate here since the
+// user is still typing — they can click the button or use the right-click flow.
 els.targetComment.addEventListener('input', () => {
   if (selectedTone) updateGenerateBtnState();
 });
@@ -256,22 +265,37 @@ async function generateReply() {
 function setGeneratingState(loading) {
   els.generateBtn.classList.toggle('loading', loading);
   els.generateBtnIcon.textContent = loading ? '⏳' : '✨';
+
   if (loading) {
     els.generateBtnText.textContent = 'Generating...';
+    // Show the result section immediately with the typing animation
+    show(els.typingIndicator);
+    hide(els.resultHeader);
+    hide(els.resultBox);
+    els.resultSection.classList.add('generating');
+    show(els.resultSection);
+    els.resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } else {
+    hide(els.typingIndicator);
+    els.resultSection.classList.remove('generating');
     updateGenerateBtnState();
   }
 }
 
 function showResult(text) {
   els.resultBox.textContent = text;
+  hide(els.typingIndicator);
+  show(els.resultHeader);
+  show(els.resultBox);
   show(els.resultSection);
   els.resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  updateGenerateBtnState(); // switch label to "Regenerate …"
 }
 
 function showError(msg) {
   els.errorBox.textContent = `⚠️ ${msg}`;
   show(els.errorBox);
+  hide(els.typingIndicator);
   hide(els.resultSection);
 }
 
