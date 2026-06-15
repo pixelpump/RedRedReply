@@ -9,8 +9,8 @@
   --bg-2: #1a1a24;
   --bg-3: #242433;
   --border: #2e2e42;
-  --accent: #7c3aed;
-  --accent-light: #8b5cf6;
+  --accent: #ff4500;
+  --accent-light: #ff6534;
   --text: #e8e8f0;
   --text-muted: #8888a8;
   --text-dim: #555570;
@@ -174,13 +174,13 @@ code {
   padding: 10px 24px;
   border: none;
   border-radius: 8px;
-  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+  background: linear-gradient(135deg, #ff4500, #cc3700);
   color: #fff;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.4);
+  box-shadow: 0 2px 12px rgba(255, 69, 0, 0.4);
   transition: opacity 0.15s, transform 0.1s;
 }
 
