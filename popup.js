@@ -282,7 +282,7 @@ function setGeneratingState(loading) {
   }
 }
 
-function showResult(text) {
+async function showResult(text) {
   els.resultBox.textContent = text;
   hide(els.typingIndicator);
   show(els.resultHeader);
@@ -290,6 +290,21 @@ function showResult(text) {
   show(els.resultSection);
   els.resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   updateGenerateBtnState(); // switch label to "Regenerate …"
+
+  // Auto-copy to clipboard
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (_) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  els.copyToast.textContent = '📋 Copied to clipboard!';
+  show(els.copyToast);
+  setTimeout(() => hide(els.copyToast), 2500);
 }
 
 function showError(msg) {
@@ -305,19 +320,17 @@ els.copyBtn.addEventListener('click', async () => {
   if (!text) return;
   try {
     await navigator.clipboard.writeText(text);
-    show(els.copyToast);
-    setTimeout(() => hide(els.copyToast), 2000);
   } catch (_) {
-    // Fallback for older environments
     const ta = document.createElement('textarea');
     ta.value = text;
     document.body.appendChild(ta);
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-    show(els.copyToast);
-    setTimeout(() => hide(els.copyToast), 2000);
   }
+  els.copyToast.textContent = '📋 Copied again!';
+  show(els.copyToast);
+  setTimeout(() => hide(els.copyToast), 2000);
 });
 
 // ── Settings ──
